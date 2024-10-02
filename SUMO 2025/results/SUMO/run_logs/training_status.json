@@ -1,0 +1,29 @@
+{
+    "SumoAgent": {
+        "checkpoints": [
+            {
+                "steps": 65830,
+                "file_path": "results\\SUMO\\SumoAgent\\SumoAgent-65830.onnx",
+                "reward": 0.0004021370779311485,
+                "creation_time": 1727851333.216538,
+                "auxillary_file_paths": [
+                    "results\\SUMO\\SumoAgent\\SumoAgent-65830.pt"
+                ]
+            }
+        ],
+        "final_checkpoint": {
+            "steps": 65830,
+            "file_path": "results\\SUMO\\SumoAgent.onnx",
+            "reward": 0.0004021370779311485,
+            "creation_time": 1727851333.216538,
+            "auxillary_file_paths": [
+                "results\\SUMO\\SumoAgent\\SumoAgent-65830.pt"
+            ]
+        }
+    },
+    "metadata": {
+        "stats_format_version": "0.3.0",
+        "mlagents_version": "1.1.0.dev0",
+        "torch_version": "2.3.1+cpu"
+    }
+}
