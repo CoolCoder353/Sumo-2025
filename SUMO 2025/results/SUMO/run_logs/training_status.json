@@ -2,28 +2,28 @@
     "SumoAgent": {
         "checkpoints": [
             {
-                "steps": 65830,
-                "file_path": "results\\SUMO\\SumoAgent\\SumoAgent-65830.onnx",
-                "reward": 0.0004021370779311485,
-                "creation_time": 1727851333.216538,
+                "steps": 5510,
+                "file_path": "results\\SUMO\\SumoAgent\\SumoAgent-5510.onnx",
+                "reward": 0.0005351224237974562,
+                "creation_time": 1729027441.0545409,
                 "auxillary_file_paths": [
-                    "results\\SUMO\\SumoAgent\\SumoAgent-65830.pt"
+                    "results\\SUMO\\SumoAgent\\SumoAgent-5510.pt"
                 ]
             }
         ],
         "final_checkpoint": {
-            "steps": 65830,
+            "steps": 5510,
             "file_path": "results\\SUMO\\SumoAgent.onnx",
-            "reward": 0.0004021370779311485,
-            "creation_time": 1727851333.216538,
+            "reward": 0.0005351224237974562,
+            "creation_time": 1729027441.0545409,
             "auxillary_file_paths": [
-                "results\\SUMO\\SumoAgent\\SumoAgent-65830.pt"
+                "results\\SUMO\\SumoAgent\\SumoAgent-5510.pt"
             ]
         }
     },
     "metadata": {
         "stats_format_version": "0.3.0",
-        "mlagents_version": "1.1.0.dev0",
-        "torch_version": "2.3.1+cpu"
+        "mlagents_version": "1.1.0",
+        "torch_version": "2.4.1+cpu"
     }
 }
