@@ -16,8 +16,8 @@ behaviors:
     checkpoint_interval: 100000
     network_settings:
       normalize: false
-      hidden_units: 256
-      num_layers: 3
+      hidden_units: 768  # 256 * 3
+      num_layers: 9  # 3 * 3
       vis_encode_type: simple
       memory: null
       goal_conditioning_type: hyper
@@ -28,8 +28,8 @@ behaviors:
         strength: 1.0
         network_settings:
           normalize: false
-          hidden_units: 256
-          num_layers: 3
+          hidden_units: 768  # 256 * 3
+          num_layers: 27  # 3 * 3
           vis_encode_type: simple
           memory: null
           goal_conditioning_type: hyper

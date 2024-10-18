@@ -35,7 +35,19 @@ public class SumoAgent : Agent
             m.SetSpeed(0);
         }
         transform.rotation = Quaternion.Euler(0, startingDirection * Random.Range(0, 180), 0);
+        StartCoroutine(LiveingPoints());
     }
+
+    private IEnumerator LiveingPoints()
+    {
+        while (true)
+        {
+            Debug.Log("Added 0.3 points to " + team);
+            AddReward(0.3f);
+            yield return new WaitForSeconds(1);
+        }
+    }
+
     public override void CollectObservations(VectorSensor sensor)
     {
         foreach (var s in Sensors)
@@ -84,13 +96,29 @@ public class SumoAgent : Agent
             Environment.Reset(team);
         }
 
-        //Give the agent a small reward the longer it lives
-        AddReward(0.00001f);
-
         //If the agent is not moving for 5 seconds, end the episode on a tie (-1)
         if (Time.time >= lastTimeChanged + 5)
         {
             Environment.Reset(-1);
+        }
+
+    }
+
+
+    void OnCollisionEnter(Collision collision)
+    {
+        if (collision.gameObject.TryGetComponent(out SumoAgent agent))
+        {
+            if (agent.team != team)
+            {
+                Debug.Log("Added 30 points to " + team);
+                AddReward(30f);
+            }
+            else
+            {
+                Debug.Log("Removed 30 points from " + team);
+                AddReward(-30f);
+            }
         }
 
     }
