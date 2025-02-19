@@ -42,7 +42,7 @@ public class SumoAgent : Agent
     {
         while (true)
         {
-            Debug.Log("Added 0.3 points to " + team);
+            //// Debug.Log("Added 0.3 points to " + team);
             AddReward(0.3f);
             yield return new WaitForSeconds(1);
         }
@@ -111,13 +111,8 @@ public class SumoAgent : Agent
         {
             if (agent.team != team)
             {
-                Debug.Log("Added 30 points to " + team);
-                AddReward(30f);
-            }
-            else
-            {
-                Debug.Log("Removed 30 points from " + team);
-                AddReward(-30f);
+                ////Debug.Log("Added 30 points to " + team);
+                AddReward(250);
             }
         }
 

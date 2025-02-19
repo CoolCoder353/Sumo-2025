@@ -1,1 +1,13 @@
-mlagents-learn --force results\SUMO\configuration.yaml
+mlagents-learn --resume results\SUMO_Modified\configuration.yaml
+
+
+
+
+Reward Values:
+
+Win: 1000
+Loss: -200
+
+Live: 0.3 / sec ( 100 in 5 minutes
+
+Hit: 250
