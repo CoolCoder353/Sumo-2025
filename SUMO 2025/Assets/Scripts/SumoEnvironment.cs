@@ -9,10 +9,12 @@ public class SumoEnvironment : MonoBehaviour
     public SumoAgent trainingAgent; // The agent that is being trained
 
     public List<GameObject> Other_Agents; // List of all other agents
-    public List<SumoAgent> Agents;
+    public List<Agent> Agents;
     public List<GameObject> StartPositions; // List of all possible start positions
 
+    public int chanceForHardCodedRandomAgent = 10; // The chance for a random agent to be added to the environment
 
+    public List<GameObject> possibleHardBots; // List of all possible hard bots
 
     private SimpleMultiAgentGroup m_BlueAgentGroup;
     private SimpleMultiAgentGroup m_PurpleAgentGroup;
@@ -28,20 +30,60 @@ public class SumoEnvironment : MonoBehaviour
             Agents.Add(trainingAgent);
         }
 
-        //Add random agents to the enivronment until the amount of agents reaches the amount of start pos
-        while (Agents.Count < StartPositions.Count)
+        PickRandomBots();
+        //        //Add random agents to the enivronment until the amount of agents reaches the amount of start pos
+        // while (Agents.Count < StartPositions.Count)
+        // {
+        //     //Pick a random agent
+        //     int randomAgent = Random.Range(0, Other_Agents.Count);
+
+        //     GameObject newAgent = Instantiate(Other_Agents[randomAgent], StartPositions[Agents.Count].transform.position, Quaternion.identity);
+
+        //     //Add the agent to the list of agents
+
+        //     Agents.Add(newAgent.GetComponent<SumoAgent>());
+        //     //Instantiate the agent at a random start position
+
+
+
+        // }
+
+        // for (int i = 0; i < Agents.Count; i++)
+        // {
+        //     if (i % 2 == 0)
+        //     {
+        //         Agents[i].team = 0;
+        //         Agents[i].startingPos = StartPositions[0].transform.position;
+        //         m_BlueAgentGroup.RegisterAgent(Agents[i]);
+        //     }
+        //     else
+        //     {
+        //         Agents[i].team = 1;
+        //         Agents[i].startingPos = StartPositions[1].transform.position;
+        //         m_PurpleAgentGroup.RegisterAgent(Agents[i]);
+        //     }
+        //     Agents[i].Environment = this;
+
+        // }
+
+    }
+
+    private void ResetBots()
+    {
+        Agents.clear();
+        Agents.Add(trainingAgent);
+    }
+    private void PickRandomBots()
+    {
+        bool hardBot = Random.Range(0, 100) < chanceForHardCodedRandomAgent;
+
+        if (hardBot)
         {
-            //Pick a random agent
-            int randomAgent = Random.Range(0, Other_Agents.Count);
-
-            GameObject newAgent = Instantiate(Other_Agents[randomAgent], StartPositions[Agents.Count].transform.position, Quaternion.identity);
-
-            //Add the agent to the list of agents
-            Agents.Add(newAgent.GetComponent<SumoAgent>());
-            //Instantiate the agent at a random start position
-
-
-
+            PickRandomHardBot();
+        }
+        else
+        {
+            PickMLBot();
         }
 
         for (int i = 0; i < Agents.Count; i++)
@@ -61,6 +103,42 @@ public class SumoEnvironment : MonoBehaviour
             Agents[i].Environment = this;
 
         }
+
+    }
+    private void PickMLBot()
+    {
+        //Add random agents to the enivronment until the amount of agents reaches the amount of start pos
+        while (Agents.Count < StartPositions.Count)
+        {
+            //Pick a random agent
+            int randomAgent = Random.Range(0, Other_Agents.Count);
+
+            GameObject newAgent = Instantiate(Other_Agents[randomAgent], StartPositions[Agents.Count].transform.position, Quaternion.identity);
+
+            //Add the agent to the list of agents
+
+            Agents.Add(newAgent.GetComponent<SumoAgent>());
+            //Instantiate the agent at a random start position
+        }
+
+    }
+
+    private void PickRandomHardBot()
+    {
+        while (Agents.Count < StartPositions.Count)
+        {
+            //Pick a random agent
+            int randomAgent = Random.Range(0, possibleHardBots.Count);
+
+            GameObject newAgent = Instantiate(possibleHardBots[randomAgent], StartPositions[Agents.Count].transform.position, Quaternion.identity);
+
+            //Dont add the bot to the list of agents cause it will run on its own.
+        }
+
+        Agents[0].team = 0;
+        Agents[0].startingPos = StartPositions[0].transform.position;
+        m_BlueAgentGroup.RegisterAgent(Agents[0]);
+
     }
 
     public void Reset(int losingTeam)
@@ -84,6 +162,9 @@ public class SumoEnvironment : MonoBehaviour
         }
         m_BlueAgentGroup.EndGroupEpisode();
         m_PurpleAgentGroup.EndGroupEpisode();
+
+        ResetBots();
+        PickRandomBots();
     }
 
 
