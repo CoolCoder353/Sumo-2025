@@ -29,6 +29,11 @@ public class SumoAgent : Agent
     }
     public override void OnEpisodeBegin()
     {
+        if (transform == null)
+        {
+            return;
+        }
+
         if (startingPos != default) { transform.position = startingPos; }
         foreach (var m in Motors)
         {

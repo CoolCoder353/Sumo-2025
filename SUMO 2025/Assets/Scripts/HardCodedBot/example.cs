@@ -7,26 +7,27 @@ using Unity.MLAgents.Actuators;
 
 public class ExampleBot : Agent
 {
-
     public List<Motor> Motors;
     public List<IRSensor> Sensors;
-
-
 
     public SumoEnvironment Environment { get; set; }
     public int team { get; set; }
 
     public Vector3 startingPos { get; set; } = default;
     public int startingDirection { get; set; }
-    private Transform transform;
+
+    private Vector3 lastPosition;
+    private float lastTimeChanged;
+
+    private const float MovementThreshold = 0.01f; // Minimum movement to consider the bot as moving
+    private const float IdleTimeout = 5f;          // Time in seconds before considering the bot idle
 
     // Start is called before the first frame update
     void Start()
     {
-
-        transform = gameObject.transform;
+        lastPosition = transform.position;
+        lastTimeChanged = Time.time;
     }
-
 
     /// <summary>
     /// DO NOT CHANGE UNDER ANY CIRCUMSTANCES
@@ -39,10 +40,12 @@ public class ExampleBot : Agent
             m.SetSpeed(0);
         }
         transform.rotation = Quaternion.Euler(0, startingDirection * Random.Range(0, 180), 0);
-        StartCoroutine(LiveingPoints());
+
+        lastPosition = transform.position;
+        lastTimeChanged = Time.time;
     }
 
-    public void OnActionReceived(ActionBuffers actionBuffers)
+    public override void OnActionReceived(ActionBuffers actionBuffers)
     {
         float x = actionBuffers.ContinuousActions[0];
         float y = actionBuffers.ContinuousActions[1];
@@ -53,38 +56,34 @@ public class ExampleBot : Agent
         Motors[0].SetSpeed(x);
         Motors[1].SetSpeed(y);
 
-        //Check if we have changed pos (plus or minus a little bit)
-        if (Vector3.Distance(lastPosition, transform.position) > 0.01f)
+
+        // Check if the bot has moved
+        if (Vector3.Distance(lastPosition, transform.position) > MovementThreshold)
         {
             lastPosition = transform.position;
             lastTimeChanged = Time.time;
         }
 
-
-
-        //Rewards
-        //If the agent has fallen, end the episode
+        // Rewards
+        // If the agent has fallen, end the episode
         if (transform.position.y < -1)
         {
             Environment.Reset(team);
         }
 
-        //If the agent is not moving for 5 seconds, end the episode on a tie (-1)
-        if (Time.time >= lastTimeChanged + 5)
+        // If the agent is idle for too long, end the episode on a tie (-1)
+        if (Time.time >= lastTimeChanged + IdleTimeout)
         {
             Environment.Reset(-1);
         }
-
     }
 
     public override void Heuristic(in ActionBuffers actionsOut)
     {
         var continuousActionsOut = actionsOut.ContinuousActions;
 
-        //This is where your robot logic will be
-
-        //Example: Move forward
-        continuousActionsOut[0] = 1;
-        continuousActionsOut[1] = 1;
+        // Example: Move forward
+        continuousActionsOut[0] = 1f;
+        continuousActionsOut[1] = 1f;
     }
 }

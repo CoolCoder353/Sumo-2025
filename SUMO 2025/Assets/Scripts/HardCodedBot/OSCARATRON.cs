@@ -1,34 +1,17 @@
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Unity.MLAgents;
 using Unity.MLAgents.Sensors;
 using Unity.MLAgents.Actuators;
 
-public class OSCARATRON : Agent
+public class OSCARATRON : TrainingAgent
 {
-
-    public List<Motor> Motors;
-    public List<IRSensor> Sensors;
-
-
-
-    public SumoEnvironment Environment { get; set; }
-    public int team { get; set; }
-
-    public Vector3 startingPos { get; set; } = default;
-    public int startingDirection { get; set; }
-    private Transform transform;
-
     private Agent Enemy;
 
-    // Start is called before the first frame update
-    void Start()
-    {
-
-        transform = gameObject.transform;
-    }
-
+    // Constants for behavior
+    private const float MaxDistanceToCharge = 10f;
+    private const float MaxSpeed = 1f; // Adjusted to ML-Agents normalized range
+    private const float StopSpeed = 0.5f; // Stop value for motors
 
     /// <summary>
     /// DO NOT CHANGE UNDER ANY CIRCUMSTANCES
@@ -42,26 +25,32 @@ public class OSCARATRON : Agent
         }
         transform.rotation = Quaternion.Euler(0, startingDirection * Random.Range(0, 180), 0);
 
-        //Get the enemy
-        //GET all the Agents in the scene that have the same parent as this agent
-        var agents = FindObjectsOfType<Agent>();
-
+        // Get the enemy
         Enemy = null;
-
+        var agents = FindObjectsOfType<Agent>();
         foreach (var a in agents)
         {
             if (a.transform.parent == transform.parent && a != this)
             {
-                enemy = a;
+                Enemy = a;
                 break;
             }
         }
-
-        StartCoroutine(LiveingPoints());
     }
 
-    public void OnActionReceived(ActionBuffers actionBuffers)
+    public override void CollectObservations(VectorSensor sensor)
     {
+        foreach (var s in Sensors)
+        {
+            sensor.AddObservation(s.GetDistance());
+        }
+    }
+
+    public override void OnActionReceived(ActionBuffers actionBuffers)
+    {
+        Debug.Log(actionBuffers.ContinuousActions[0]);
+        Debug.Log(actionBuffers.ContinuousActions[1]);
+
         float x = actionBuffers.ContinuousActions[0];
         float y = actionBuffers.ContinuousActions[1];
 
@@ -71,105 +60,74 @@ public class OSCARATRON : Agent
         Motors[0].SetSpeed(x);
         Motors[1].SetSpeed(y);
 
-        //Check if we have changed pos (plus or minus a little bit)
-        if (Vector3.Distance(lastPosition, transform.position) > 0.01f)
-        {
-            lastPosition = transform.position;
-            lastTimeChanged = Time.time;
-        }
 
-
-
-        //Rewards
-        //If the agent has fallen, end the episode
+        // Rewards
+        // If the agent has fallen, end the episode
         if (transform.position.y < -1)
         {
             Environment.Reset(team);
         }
-
-        //If the agent is not moving for 5 seconds, end the episode on a tie (-1)
-        if (Time.time >= lastTimeChanged + 5)
-        {
-            Environment.Reset(-1);
-        }
-
     }
 
     public override void Heuristic(in ActionBuffers actionsOut)
     {
+        Debug.Log("Heuristic called");
         var continuousActionsOut = actionsOut.ContinuousActions;
 
-        //This is where your robot logic will be
 
-        // Left Motor: continuousActionsOut[0]
-        // Right Motor: continuousActionsOut[1]
-
-        //0 is full reverse, 0.5 is stop, 1 is full forward
-
-        //Example: Move forward
-
-
-        //Sensors :
+        // Sensors:
         // 0: front center IR
         // 1: front left IR
         // 2: front right IR
-        // 3: bottom left colour
-        // 4: bottom right colour
+        // 3: bottom left color
+        // 4: bottom right color
 
-        bool WhiteLeft = Sensors[3].GetDistance();
-        bool WhiteRight = Sensors[4].GetDistance();
+        bool WhiteLeft = Sensors[3].GetDistance() == 1;
+        bool WhiteRight = Sensors[4].GetDistance() == 1;
 
         float foundSomethingLeft = Sensors[1].GetDistance();
         float foundSomethingRight = Sensors[2].GetDistance();
         float foundSomethingCenter = Sensors[0].GetDistance();
 
-        //Constants -> needs to be calibrated
-        float maxDistanceToCharge = 10f;
-        float maxSpeed = 100f;
+        Debug.Log($"WhiteLeft: {WhiteLeft}, WhiteRight: {WhiteRight}, foundSomethingLeft: {foundSomethingLeft}, foundSomethingRight: {foundSomethingRight}, foundSomethingCenter: {foundSomethingCenter}");
 
-
-        //If the robot is on a white line, it should turn around
+        // If the robot is on a white line, it should turn around
         if (WhiteLeft)
         {
-            continuousActionsOut[0] = 0.5f; //stops
-            continuousActionsOut[1] = 0f; //backwards
+            continuousActionsOut[0] = StopSpeed; // Stop
+            continuousActionsOut[1] = 0f;       // Move backward
             return;
         }
         if (WhiteRight)
         {
-            continuousActionsOut[0] = 0f; //backwards
-            continuousActionsOut[1] = 0.5f; //stops
+            continuousActionsOut[0] = 0f;       // Move backward
+            continuousActionsOut[1] = StopSpeed; // Stop
             return;
         }
 
+        // If no enemy is detected, move forward
         if (Enemy == null)
         {
-            //Just move forward
-            continuousActionsOut[0] = 1;
-            continuousActionsOut[1] = 1;
-            return
+            continuousActionsOut[0] = MaxSpeed;
+            continuousActionsOut[1] = MaxSpeed;
+            return;
         }
 
-        //At this point we know who the enemy is so lets chase it
+        // Chase the enemy
         Vector3 enemyPos = Enemy.transform.position;
         Vector3 myPos = transform.position;
 
         Vector3 direction = enemyPos - myPos;
-
-        //Normalise
         direction.Normalize();
 
-        //Go to it (remember that 0 is backwards, 0.5 is stop, 1 is forwards)
+        // Map direction to motor values (0 is backward, 0.5 is stop, 1 is forward)
         float mappedX = direction.x / 2 + 0.5f;
         float mappedY = direction.z / 2 + 0.5f;
 
-        continuousActionsOut[0] = mappedX;
-        continuousActionsOut[1] = mappedY;
+        continuousActionsOut[0] = Mathf.Clamp(mappedX, 0f, 1f);
+        continuousActionsOut[1] = Mathf.Clamp(mappedY, 0f, 1f);
 
-
-
-
-
+        Debug.Log($"Chasing enemy at {enemyPos} with direction {direction} and actionsOut values: {continuousActionsOut[0]}, {continuousActionsOut[1]}");
 
     }
 }

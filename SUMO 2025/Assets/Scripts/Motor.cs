@@ -23,6 +23,7 @@ public class Motor : MonoBehaviour
 
     public void SetSpeed(float percentage)
     {
+        // Debug.Log($"Object: {gameObject.transform.parent.gameObject.name}SetSpeed: {percentage}");
         SetRPM(percentage * MaxRPM);
     }
 
