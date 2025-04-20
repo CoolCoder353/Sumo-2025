@@ -1,13 +1,10 @@
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using Unity.MLAgents;
-using Unity.MLAgents.Sensors;
-using Unity.MLAgents.Actuators;
 
-public class FlankAndSpankBot : TrainingAgent
+public class FlankAndSpankBot : MonoBehaviour
 {
-
+    public List<Motor> Motors; // Motors controlling the bot
+    public List<IRSensor> Sensors; // Sensors for detecting surroundings
 
     private int attackMode = 0; // Default attack mode
     private float maxDistanceToCharge = 5.0f; // Example value
@@ -17,56 +14,55 @@ public class FlankAndSpankBot : TrainingAgent
     private int framesRight = 0;
     private const int FrameDelay = 100;
 
-    // Start is called before the first frame update
+    private Vector3 startingPos;
+    private float startingDirection;
+
     void Start()
     {
-        // Initialization logic
+        // Initialize starting position and rotation
+        startingPos = transform.position;
+        startingDirection = transform.eulerAngles.y;
+
+        ResetBot();
     }
 
-    /// <summary>
-    /// DO NOT CHANGE UNDER ANY CIRCUMSTANCES
-    /// </summary>
-    public override void OnEpisodeBegin()
+    void Update()
     {
-        if (startingPos != default) { transform.position = startingPos; }
-        foreach (var m in Motors)
+        // Main logic for controlling the bot
+        HandleWhiteLineDetection();
+
+        switch (attackMode)
         {
-            m.SetSpeed(0);
+            case 0:
+                AggressiveCharge();
+                break;
+            case 1:
+                FlankAndAttack();
+                break;
+            case 2:
+                EvasiveCounter();
+                break;
         }
+    }
+
+    private void ResetBot()
+    {
+        // Reset position and rotation
+        transform.position = startingPos;
         transform.rotation = Quaternion.Euler(0, startingDirection * Random.Range(0, 180), 0);
-    }
 
-    public override void OnActionReceived(ActionBuffers actionBuffers)
-    {
-        float x = actionBuffers.ContinuousActions[0];
-        float y = actionBuffers.ContinuousActions[1];
-
-        //Normalize the values between (-1) - (+1)
-        x = (x - 0.5f) * 2;
-        y = (y - 0.5f) * 2;
-        Motors[0].SetSpeed(x);
-        Motors[1].SetSpeed(y);
-
-
-        // Rewards
-        if (transform.position.y < -1)
+        // Stop all motors
+        foreach (var motor in Motors)
         {
-            Environment.Reset(team);
+            motor.SetSpeed(0);
         }
     }
 
-    public override void Heuristic(in ActionBuffers actionsOut)
+    private void HandleWhiteLineDetection()
     {
-        var continuousActionsOut = actionsOut.ContinuousActions;
-
         bool WhiteLeft = Sensors[3].GetDistance() == 1;
         bool WhiteRight = Sensors[4].GetDistance() == 1;
 
-        float foundSomethingLeft = Sensors[1].GetDistance();
-        float foundSomethingRight = Sensors[2].GetDistance();
-        float foundSomethingCenter = Sensors[0].GetDistance();
-
-        // Handle white line detection
         if (WhiteLeft || framesLeft > 0)
         {
             if (framesLeft <= 0)
@@ -74,8 +70,8 @@ public class FlankAndSpankBot : TrainingAgent
                 framesLeft = FrameDelay;
             }
             framesLeft--;
-            continuousActionsOut[0] = 0.5f; // Stop
-            continuousActionsOut[1] = 0f;  // Move backward
+            Motors[0].SetSpeed(0.5f); // Stop
+            Motors[1].SetSpeed(0f);  // Move backward
             return;
         }
         else if (WhiteRight || framesRight > 0)
@@ -85,67 +81,75 @@ public class FlankAndSpankBot : TrainingAgent
                 framesRight = FrameDelay;
             }
             framesRight--;
-            continuousActionsOut[0] = 0.5f; // Stop
-            continuousActionsOut[1] = 0f;  // Move backward
+            Motors[0].SetSpeed(0.5f); // Stop
+            Motors[1].SetSpeed(0f);  // Move backward
             return;
         }
+    }
 
-        // Attack modes
-        switch (attackMode)
+    private void AggressiveCharge()
+    {
+        float foundSomethingCenter = Sensors[0].GetDistance();
+
+        if (foundSomethingCenter > 0 && foundSomethingCenter < maxDistanceToCharge)
         {
-            case 0: // Aggressive Charge
-                if (foundSomethingCenter > 0 && foundSomethingCenter < maxDistanceToCharge)
-                {
-                    continuousActionsOut[0] = maxSpeed;
-                    continuousActionsOut[1] = maxSpeed;
-                }
-                else
-                {
-                    continuousActionsOut[0] = 0.75f;
-                    continuousActionsOut[1] = 0.75f;
-                }
-                break;
+            Motors[0].SetSpeed(maxSpeed);
+            Motors[1].SetSpeed(maxSpeed);
+        }
+        else
+        {
+            Motors[0].SetSpeed(0.75f);
+            Motors[1].SetSpeed(0.75f);
+        }
+    }
 
-            case 1: // Flank & Attack
-                if (foundSomethingLeft > 0 && foundSomethingLeft < maxDistanceToCharge)
-                {
-                    continuousActionsOut[0] = maxSpeed;
-                    continuousActionsOut[1] = turnSpeed;
-                }
-                else if (foundSomethingRight > 0 && foundSomethingRight < maxDistanceToCharge)
-                {
-                    continuousActionsOut[0] = turnSpeed;
-                    continuousActionsOut[1] = maxSpeed;
-                }
-                else
-                {
-                    continuousActionsOut[0] = 0.75f;
-                    continuousActionsOut[1] = 0.75f;
-                }
-                break;
+    private void FlankAndAttack()
+    {
+        float foundSomethingLeft = Sensors[1].GetDistance();
+        float foundSomethingRight = Sensors[2].GetDistance();
 
-            case 2: // Evasive Counter
-                if (foundSomethingCenter > 0 && foundSomethingCenter < maxDistanceToCharge)
-                {
-                    continuousActionsOut[0] = 0.5f;
-                    continuousActionsOut[1] = 0f;
-                }
-                else if (foundSomethingLeft > 0 && foundSomethingLeft < maxDistanceToCharge)
-                {
-                    continuousActionsOut[0] = 0f;
-                    continuousActionsOut[1] = 1f;
-                }
-                else if (foundSomethingRight > 0 && foundSomethingRight < maxDistanceToCharge)
-                {
-                    continuousActionsOut[0] = 1f;
-                    continuousActionsOut[1] = 0f;
-                }
-                else
-                {
-                    continuousActionsOut[0] = 0.75f;
-                    continuousActionsOut[1] = 0.75f;
-                }
-                break;
+        if (foundSomethingLeft > 0 && foundSomethingLeft < maxDistanceToCharge)
+        {
+            Motors[0].SetSpeed(maxSpeed);
+            Motors[1].SetSpeed(turnSpeed);
+        }
+        else if (foundSomethingRight > 0 && foundSomethingRight < maxDistanceToCharge)
+        {
+            Motors[0].SetSpeed(turnSpeed);
+            Motors[1].SetSpeed(maxSpeed);
+        }
+        else
+        {
+            Motors[0].SetSpeed(0.75f);
+            Motors[1].SetSpeed(0.75f);
+        }
+    }
+
+    private void EvasiveCounter()
+    {
+        float foundSomethingCenter = Sensors[0].GetDistance();
+        float foundSomethingLeft = Sensors[1].GetDistance();
+        float foundSomethingRight = Sensors[2].GetDistance();
+
+        if (foundSomethingCenter > 0 && foundSomethingCenter < maxDistanceToCharge)
+        {
+            Motors[0].SetSpeed(0.5f);
+            Motors[1].SetSpeed(0f);
+        }
+        else if (foundSomethingLeft > 0 && foundSomethingLeft < maxDistanceToCharge)
+        {
+            Motors[0].SetSpeed(0f);
+            Motors[1].SetSpeed(1f);
+        }
+        else if (foundSomethingRight > 0 && foundSomethingRight < maxDistanceToCharge)
+        {
+            Motors[0].SetSpeed(1f);
+            Motors[1].SetSpeed(0f);
+        }
+        else
+        {
+            Motors[0].SetSpeed(0.75f);
+            Motors[1].SetSpeed(0.75f);
         }
     }
 }

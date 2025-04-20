@@ -1,80 +1,105 @@
 using System.Collections.Generic;
 using UnityEngine;
-using Unity.MLAgents;
-using Unity.MLAgents.Sensors;
-using Unity.MLAgents.Actuators;
 
-public class OSCARATRON : TrainingAgent
+public class OSCARATRON : MonoBehaviour
 {
-    private Agent Enemy;
+    public List<Motor> Motors; // Motors controlling the bot
+    public List<IRSensor> Sensors; // Sensors for detecting surroundings
+    public Transform Enemy; // Reference to the enemy bot
 
     // Constants for behavior
     private const float MaxDistanceToCharge = 10f;
-    private const float MaxSpeed = 1f; // Adjusted to ML-Agents normalized range
+    private const float MaxSpeed = 0.75f; // Maximum speed
     private const float StopSpeed = 0.5f; // Stop value for motors
 
-    /// <summary>
-    /// DO NOT CHANGE UNDER ANY CIRCUMSTANCES
-    /// </summary>
-    public override void OnEpisodeBegin()
+    private Vector3 startingPos;
+    private float startingDirection;
+
+    void Start()
     {
-        if (startingPos != default) { transform.position = startingPos; }
-        foreach (var m in Motors)
+        // Initialize starting position and rotation
+        startingPos = transform.position;
+        startingDirection = transform.eulerAngles.y;
+
+        ResetBot();
+    }
+
+    void Update()
+    {
+        // Main logic for controlling the bot
+        if (Enemy == null)
         {
-            m.SetSpeed(0);
+            FindEnemy();
         }
+
+        if (Enemy != null)
+        {
+            ChaseEnemy();
+        }
+        else
+        {
+            MoveForward();
+        }
+
+        CheckForWhiteLine();
+
+    }
+
+
+
+    private void ResetBot()
+    {
+        // Reset position and rotation
+        transform.position = startingPos;
         transform.rotation = Quaternion.Euler(0, startingDirection * Random.Range(0, 180), 0);
 
-        // Get the enemy
-        Enemy = null;
-        var agents = FindObjectsOfType<Agent>();
-        foreach (var a in agents)
+        // Stop all motors
+        foreach (var motor in Motors)
         {
-            if (a.transform.parent == transform.parent && a != this)
+            motor.SetSpeed(0);
+        }
+    }
+
+    private void FindEnemy()
+    {
+        // Find the closest enemy in the scene
+        var agents = FindObjectsOfType<SumoAgent>();
+        foreach (var agent in agents)
+        {
+            if (agent != transform)
             {
-                Enemy = a;
+                Enemy = agent.gameObject.transform;
                 break;
             }
         }
     }
 
-    public override void CollectObservations(VectorSensor sensor)
+    private void ChaseEnemy()
     {
-        foreach (var s in Sensors)
-        {
-            sensor.AddObservation(s.GetDistance());
-        }
+        // Chase the enemy
+        Vector3 enemyPos = Enemy.position;
+        Vector3 myPos = transform.position;
+
+        Vector3 direction = enemyPos - myPos;
+        direction.Normalize();
+
+        // Map direction to motor values (0 is backward, 0.5 is stop, 1 is forward)
+        float mappedX = direction.x / 2 + 0.5f;
+        float mappedY = direction.z / 2 + 0.5f;
+
+        Motors[0].SetSpeed(Mathf.Clamp(mappedX, 0f, MaxSpeed));
+        Motors[1].SetSpeed(Mathf.Clamp(mappedY, 0f, MaxSpeed));
     }
 
-    public override void OnActionReceived(ActionBuffers actionBuffers)
+    private void MoveForward()
     {
-        Debug.Log(actionBuffers.ContinuousActions[0]);
-        Debug.Log(actionBuffers.ContinuousActions[1]);
-
-        float x = actionBuffers.ContinuousActions[0];
-        float y = actionBuffers.ContinuousActions[1];
-
-        //Normalize the values between (-1) - (+1)
-        x = (x - 0.5f) * 2;
-        y = (y - 0.5f) * 2;
-        Motors[0].SetSpeed(x);
-        Motors[1].SetSpeed(y);
-
-
-        // Rewards
-        // If the agent has fallen, end the episode
-        if (transform.position.y < -1)
-        {
-            Environment.Reset(team);
-        }
+        // Move forward at a constant speed
+        Motors[0].SetSpeed(MaxSpeed);
+        Motors[1].SetSpeed(MaxSpeed);
     }
 
-    public override void Heuristic(in ActionBuffers actionsOut)
+    private void CheckForWhiteLine()
     {
-        Debug.Log("Heuristic called");
-        var continuousActionsOut = actionsOut.ContinuousActions;
-
-
         // Sensors:
         // 0: front center IR
         // 1: front left IR
@@ -85,49 +110,15 @@ public class OSCARATRON : TrainingAgent
         bool WhiteLeft = Sensors[3].GetDistance() == 1;
         bool WhiteRight = Sensors[4].GetDistance() == 1;
 
-        float foundSomethingLeft = Sensors[1].GetDistance();
-        float foundSomethingRight = Sensors[2].GetDistance();
-        float foundSomethingCenter = Sensors[0].GetDistance();
-
-        Debug.Log($"WhiteLeft: {WhiteLeft}, WhiteRight: {WhiteRight}, foundSomethingLeft: {foundSomethingLeft}, foundSomethingRight: {foundSomethingRight}, foundSomethingCenter: {foundSomethingCenter}");
-
-        // If the robot is on a white line, it should turn around
         if (WhiteLeft)
         {
-            continuousActionsOut[0] = StopSpeed; // Stop
-            continuousActionsOut[1] = 0f;       // Move backward
-            return;
+            Motors[0].SetSpeed(StopSpeed); // Stop
+            Motors[1].SetSpeed(0f);       // Move backward
         }
-        if (WhiteRight)
+        else if (WhiteRight)
         {
-            continuousActionsOut[0] = 0f;       // Move backward
-            continuousActionsOut[1] = StopSpeed; // Stop
-            return;
+            Motors[0].SetSpeed(0f);       // Move backward
+            Motors[1].SetSpeed(StopSpeed); // Stop
         }
-
-        // If no enemy is detected, move forward
-        if (Enemy == null)
-        {
-            continuousActionsOut[0] = MaxSpeed;
-            continuousActionsOut[1] = MaxSpeed;
-            return;
-        }
-
-        // Chase the enemy
-        Vector3 enemyPos = Enemy.transform.position;
-        Vector3 myPos = transform.position;
-
-        Vector3 direction = enemyPos - myPos;
-        direction.Normalize();
-
-        // Map direction to motor values (0 is backward, 0.5 is stop, 1 is forward)
-        float mappedX = direction.x / 2 + 0.5f;
-        float mappedY = direction.z / 2 + 0.5f;
-
-        continuousActionsOut[0] = Mathf.Clamp(mappedX, 0f, 1f);
-        continuousActionsOut[1] = Mathf.Clamp(mappedY, 0f, 1f);
-
-        Debug.Log($"Chasing enemy at {enemyPos} with direction {direction} and actionsOut values: {continuousActionsOut[0]}, {continuousActionsOut[1]}");
-
     }
 }
