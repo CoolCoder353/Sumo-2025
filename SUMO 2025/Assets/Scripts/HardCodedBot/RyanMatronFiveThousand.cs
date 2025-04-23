@@ -13,6 +13,11 @@ public class RyanMatronFiveThousand : MonoBehaviour
     private const float IdleTimeout = 5f;          // Time in seconds before considering the bot idle
     private const float MaxDistanceToCharge = 10f; // Maximum distance to charge
     private const float MaxSpeed = 1f;            // Maximum speed
+    private int framesLeft = 0;
+    private int framesRight = 0;
+    private int framesturn = 0:
+    private const int FrameDelay = 100;
+
 
     private Vector3 startingPos;
     private float startingDirection;
@@ -69,21 +74,43 @@ public class RyanMatronFiveThousand : MonoBehaviour
 
     private void HandleWhiteLineDetection()
     {
-        bool WhiteLeft = Sensors[3].GetDistance() == 1; // Assuming 1 indicates white
+        bool WhiteLeft = Sensors[3].GetDistance() == 1;
         bool WhiteRight = Sensors[4].GetDistance() == 1;
 
-        if (WhiteLeft)
+        if (WhiteLeft || framesLeft > 0)
         {
-            Motors[0].SetSpeed(0.5f); // Stop
+            if (framesLeft <= 0)
+            {
+                framesLeft = FrameDelay;
+            }
+            framesLeft--;
+            Motors[0].SetSpeed(0f); // Move backward
             Motors[1].SetSpeed(0f);  // Move backward
-            return;
+        
         }
-        if (WhiteRight)
+        else if (WhiteRight || framesRight > 0)
         {
-            Motors[0].SetSpeed(0f);  // Move backward
-            Motors[1].SetSpeed(0.5f); // Stop
-            return;
+            if (framesRight <= 0)
+            {
+                framesRight = FrameDelay;
+            }
+            framesRight--;
+            Motors[0].SetSpeed(0f); // Move backward
+            Motors[1].SetSpeed(0f);  // Move backward
+            
+            //180 turn angle 
+        
         }
+    if(WhiteLeft || WhiteRight)
+    {
+        if(framesturn <= 0)
+                {
+                    framesturn = FrameDelay;
+                }
+                framesturn--;
+            Motors[0].SetSpeed(0f); // 180 turn 
+            Motors[1].SetSpeed(1f);  // 180 turn
+    }
     }
 
     private void ChaseOrMove()

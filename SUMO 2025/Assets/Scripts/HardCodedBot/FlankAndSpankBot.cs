@@ -12,6 +12,7 @@ public class FlankAndSpankBot : MonoBehaviour
     private float turnSpeed = 0.5f; // Turning speed
     private int framesLeft = 0;
     private int framesRight = 0;
+    private int framesturn = 0:
     private const int FrameDelay = 100;
 
     private Vector3 startingPos;
@@ -70,9 +71,9 @@ public class FlankAndSpankBot : MonoBehaviour
                 framesLeft = FrameDelay;
             }
             framesLeft--;
-            Motors[0].SetSpeed(0.5f); // Stop
+            Motors[0].SetSpeed(0f); // Move backward
             Motors[1].SetSpeed(0f);  // Move backward
-            return;
+        
         }
         else if (WhiteRight || framesRight > 0)
         {
@@ -81,10 +82,23 @@ public class FlankAndSpankBot : MonoBehaviour
                 framesRight = FrameDelay;
             }
             framesRight--;
-            Motors[0].SetSpeed(0.5f); // Stop
+            Motors[0].SetSpeed(0f); // Move backward
             Motors[1].SetSpeed(0f);  // Move backward
-            return;
+            
+            //180 turn angle 
+        
         }
+    if(WhiteLeft || WhiteRight)
+{
+     if(framesturn <= 0)
+            {
+                framesturn = FrameDelay;
+            }
+            framesturn--;
+        Motors[0].SetSpeed(0f); // 180 turn 
+        Motors[1].SetSpeed(1f);  // 180 turn
+}
+        
     }
 
     private void AggressiveCharge()
