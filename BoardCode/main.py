@@ -1,14 +1,36 @@
-pathToModel = "BoardCode\SumoAgent.onnx"
-import onnxruntime as ort
-import numpy as np
+import Model
+import csv
+# Constants
+debugMode = True
 
-# Placeholder for sensor output (to be replaced with actual sensor data)
-sensorOutput = {"obs_0": 0.5, "obs_1": 0.3, "obs_2": 0.2, "obs_3": 0.1, "obs_4": 0.4}
-# Load the ONNX model
-ort_sess = ort.InferenceSession(pathToModel)
+def GenerateRandomInput():
+    import random
+    # Generate a random input for the model
+    input_data = [random.uniform(0, 1) for _ in range(5)]
+    return input_data
 
-# Run inference
-outputs = ort_sess.run(None, {'input': sensorOutput})
+# Load model
+model = Model.Model('BoardCode\\SumoAgent.onnx')
 
-result = outputs[0].argmax(axis=1)+1
-print(result[0])
+# Open a CSV file to write predictions
+with open('predictions.csv', mode='w', newline='') as file:
+    writer = csv.writer(file)
+    # Write the header row
+    writer.writerow(['Iteration', 'Left Motor', 'Right Motor'])
+
+    i = 0
+    while i < 100:
+        # Generate random input data
+        input_data = GenerateRandomInput()
+        
+        # Run the model with the generated input data
+        predictions = model.run(input_data, returnAllPredictions=False)[0]
+
+        # Write predictions to the CSV file
+        writer.writerow([i, predictions[0], predictions[1]])
+
+        # Print predictions if debug mode is enabled
+        if debugMode:
+            print(f"Iteration {i}: Left Motor = {predictions[0]}, Right Motor = {predictions[1]}")
+        
+        i += 1
