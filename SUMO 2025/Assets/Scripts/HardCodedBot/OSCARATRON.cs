@@ -15,11 +15,17 @@ public class OSCARATRON : MonoBehaviour
     private Vector3 startingPos;
     private float startingDirection;
 
+
+    bool flightmode = false;
+
     void Start()
     {
         // Initialize starting position and rotation
         startingPos = transform.position;
         startingDirection = transform.eulerAngles.y;
+
+        flightmode = true;
+
 
         ResetBot();
     }
@@ -86,6 +92,27 @@ public class OSCARATRON : MonoBehaviour
         // Map direction to motor values (0 is backward, 0.5 is stop, 1 is forward)
         float mappedX = direction.x / 2 + 0.5f;
         float mappedY = direction.z / 2 + 0.5f;
+
+        if (flightmode) //If flight mode, dont use the motors and just use the rigidbody
+        {
+            Rigidbody rb = GetComponent<Rigidbody>();
+            if (rb == null)
+            {
+                Debug.LogError("Rigidbody not found on the bot.");
+                return;
+            }
+
+
+            //rotate 
+            Quaternion targetRotation = Quaternion.LookRotation(direction);
+
+
+            rb.Move(direction * MaxSpeed * Time.deltaTime + rb.position, targetRotation);
+
+
+
+            return;
+        }
 
         Motors[0].SetSpeed(Mathf.Clamp(mappedX, 0f, MaxSpeed));
         Motors[1].SetSpeed(Mathf.Clamp(mappedY, 0f, MaxSpeed));
