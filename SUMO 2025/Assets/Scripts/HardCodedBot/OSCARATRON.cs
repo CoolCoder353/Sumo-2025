@@ -38,6 +38,7 @@ public class OSCARATRON : MonoBehaviour
 
         if (transform.position.y < -10)
         {
+            Debug.Log("OscarTron has fallen, resetting environment for team: " + team);
             ResetBot();
             environment.Reset(team);
 

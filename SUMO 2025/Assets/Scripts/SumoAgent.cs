@@ -118,12 +118,14 @@ public class SumoAgent : Agent
         //If the agent has fallen, end the episode
         if (transform.position.y < -1 || transform.position.y > 0.1)
         {
+            Debug.Log("Agent has fallen, resetting environment for team: " + team);
             Environment.Reset(team);
         }
 
         //If the agent is not moving for 5 seconds, end the episode on a tie (-1)
         if (Time.time >= lastTimeChanged + 5)
         {
+            Debug.Log("Agent has not moved for 5 seconds, resetting environment for team: " + team);
             Environment.Reset(team);
         }
 
