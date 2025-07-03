@@ -172,6 +172,10 @@ public class SumoEnvironment : MonoBehaviour
 
             GameObject newAgent = Instantiate(possibleHardBots[randomAgent], StartPositions[Agents.Count].transform.position, Quaternion.identity);
 
+            OSCARATRON bot = newAgent.GetComponent<OSCARATRON>();
+            bot.environment = this;
+            bot.team = 1;
+
             SpawnedBots.Add(newAgent);
             //Dont add the bot to the list of agents cause it will run on its own.
         }
@@ -192,13 +196,13 @@ public class SumoEnvironment : MonoBehaviour
             ////Debug.Log("Added 100 points to " + 1);
 
             m_BlueAgentGroup.AddGroupReward(1000);
-            m_PurpleAgentGroup.AddGroupReward(-200);
+            m_PurpleAgentGroup.AddGroupReward(-20000);
         }
         else
         {
             //// Debug.Log("Removed 200 points to " + losingTeam);
             //// Debug.Log("Added 100 points to " + 0);
-            m_BlueAgentGroup.AddGroupReward(-200);
+            m_BlueAgentGroup.AddGroupReward(-20000);
             m_PurpleAgentGroup.AddGroupReward(1000);
         }
         m_BlueAgentGroup.EndGroupEpisode();

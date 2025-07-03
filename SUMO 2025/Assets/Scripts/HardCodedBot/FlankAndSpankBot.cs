@@ -12,7 +12,7 @@ public class FlankAndSpankBot : MonoBehaviour
     private float turnSpeed = 0.5f; // Turning speed
     private int framesLeft = 0;
     private int framesRight = 0;
-    private int framesturn = 0:
+    private int framesturn = 0;
     private const int FrameDelay = 100;
 
     private Vector3 startingPos;

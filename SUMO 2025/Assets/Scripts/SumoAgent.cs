@@ -20,7 +20,10 @@ public class SumoAgent : Agent
     private Transform transform;
 
     private Vector3 lastPosition;
+    private Quaternion lastRotation;
     private float lastTimeChanged;
+
+    private float startTime;
 
     // Start is called before the first frame update
     void Start()
@@ -40,6 +43,7 @@ public class SumoAgent : Agent
             m.SetSpeed(0);
         }
         transform.rotation = Quaternion.Euler(0, startingDirection * Random.Range(0, 180), 0);
+        startTime = Time.time;
         StartCoroutine(LiveingPoints());
     }
 
@@ -47,8 +51,23 @@ public class SumoAgent : Agent
     {
         while (true)
         {
-            //// Debug.Log("Added 0.3 points to " + team);
-            AddReward(0.3f);
+            // Add a small rewards for being alive within the first 15 seconds
+            if (Time.time < startTime + 15)
+            {
+                AddReward(0.01f);
+            }
+            else if (Time.time >= startTime + 3 * 60)
+            {
+                Debug.Log("Timeout, resetting environment for team: " + team);
+                Environment.Reset(team);
+            }
+            else //Punish the bot for not winning yet, exponentially
+            {
+                // Exponential decay of reward over time
+                float timeAlive = Time.time - startTime;
+                float reward = -1 / 100 * timeAlive * timeAlive + 10;
+                AddReward(reward);
+            }
             yield return new WaitForSeconds(1);
         }
     }
@@ -86,9 +105,10 @@ public class SumoAgent : Agent
         Motors[1].SetSpeed(y);
 
         //Check if we have changed pos (plus or minus a little bit)
-        if (Vector3.Distance(lastPosition, transform.position) > 0.01f)
+        if (Vector3.Distance(lastPosition, transform.position) > 0.1f)
         {
             lastPosition = transform.position;
+            lastRotation = transform.rotation;
             lastTimeChanged = Time.time;
         }
 
@@ -96,7 +116,7 @@ public class SumoAgent : Agent
 
         //Rewards
         //If the agent has fallen, end the episode
-        if (transform.position.y < -1)
+        if (transform.position.y < -1 || transform.position.y > 0.1)
         {
             Environment.Reset(team);
         }
@@ -104,8 +124,17 @@ public class SumoAgent : Agent
         //If the agent is not moving for 5 seconds, end the episode on a tie (-1)
         if (Time.time >= lastTimeChanged + 5)
         {
-            Environment.Reset(-1);
+            Environment.Reset(team);
         }
+
+        //If the agent is spinning around in circles, punish it LOTS
+        if (Mathf.Abs(transform.rotation.eulerAngles.y - lastRotation.eulerAngles.y) > 180)
+        {
+            Debug.Log("Spinning around in circles, punishing agent");
+            AddReward(-50f);
+        }
+
+
 
     }
 
@@ -119,6 +148,13 @@ public class SumoAgent : Agent
                 ////Debug.Log("Added 30 points to " + team);
                 AddReward(250);
             }
+        }
+        else if (collision.gameObject.TryGetComponent(out OSCARATRON bot))
+        {
+
+            //Debug.Log("Added 30 points to " + team);
+            AddReward(250);
+
         }
 
     }

@@ -1,6 +1,5 @@
-mlagents-learn --resume results\FinalSumoAgent\configuration.yaml
+mlagents-learn --resume results\SUMO_Modified\configuration.yaml
 
-mlagents-learn results\FinalSumoAgent\configuration.yaml
 
 
 

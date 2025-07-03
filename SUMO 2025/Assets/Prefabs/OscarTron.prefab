@@ -350,7 +350,7 @@ MeshCollider:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 3141901728886188090}
-  m_Material: {fileID: 0}
+  m_Material: {fileID: 13400000, guid: 8df925981ec3dd84b994c9c3dae55031, type: 2}
   m_IncludeLayers:
     serializedVersion: 2
     m_Bits: 0
@@ -658,10 +658,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 17828041dd48da145b2b3553b6b84760, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  agentParameters:
-    maxStep: 0
-  hasUpgradedFromAgentParameters: 1
-  MaxStep: 0
   Motors:
   - {fileID: 1061706271581121888}
   - {fileID: 5050781546655606780}
@@ -671,6 +667,7 @@ MonoBehaviour:
   - {fileID: 1803453178930944212}
   - {fileID: 4223262562576209481}
   - {fileID: 736821711675600564}
+  Enemy: {fileID: 0}
 --- !u!1 &6654809218751023495
 GameObject:
   m_ObjectHideFlags: 0

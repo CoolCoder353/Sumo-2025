@@ -14,6 +14,9 @@ public class OSCARATRON : MonoBehaviour
 
     private Vector3 startingPos;
     private float startingDirection;
+    public int team;
+
+    public SumoEnvironment environment;
 
 
     bool flightmode = false;
@@ -32,6 +35,14 @@ public class OSCARATRON : MonoBehaviour
 
     void Update()
     {
+
+        if (transform.position.y < -10)
+        {
+            ResetBot();
+            environment.Reset(team);
+
+        }
+
         // Main logic for controlling the bot
         if (Enemy == null)
         {
@@ -101,6 +112,8 @@ public class OSCARATRON : MonoBehaviour
                 Debug.LogError("Rigidbody not found on the bot.");
                 return;
             }
+
+            direction.y = 0;
 
 
             //rotate 

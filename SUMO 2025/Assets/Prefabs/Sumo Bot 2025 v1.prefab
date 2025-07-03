@@ -91,7 +91,7 @@ MeshCollider:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 332806474350140473}
-  m_Material: {fileID: 0}
+  m_Material: {fileID: 13400000, guid: 8df925981ec3dd84b994c9c3dae55031, type: 2}
   m_IncludeLayers:
     serializedVersion: 2
     m_Bits: 0
@@ -178,7 +178,7 @@ MonoBehaviour:
   m_Model: {fileID: 0}
   m_InferenceDevice: 0
   m_BehaviorType: 0
-  m_BehaviorName: FinalSumoAgent
+  m_BehaviorName: SumoAgent
   TeamId: 0
   m_UseChildSensors: 0
   m_UseChildActuators: 1

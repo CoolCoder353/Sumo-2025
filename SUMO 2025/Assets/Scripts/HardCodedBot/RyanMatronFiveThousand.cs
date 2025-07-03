@@ -15,7 +15,7 @@ public class RyanMatronFiveThousand : MonoBehaviour
     private const float MaxSpeed = 1f;            // Maximum speed
     private int framesLeft = 0;
     private int framesRight = 0;
-    private int framesturn = 0:
+    private int framesturn = 0;
     private const int FrameDelay = 100;
 
 
