@@ -371,10 +371,6 @@ PrefabInstance:
       propertyPath: m_Name
       value: Sumo Bot 2025 v23
       objectReference: {fileID: 0}
-    - target: {fileID: 7343180743975335372, guid: d9c2749d4c2b2cb42a8d63679e075e7c, type: 3}
-      propertyPath: m_BehaviorType
-      value: 0
-      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []

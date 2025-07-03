@@ -98,11 +98,16 @@ public class SumoAgent : Agent
         float x = actionBuffers.ContinuousActions[0];
         float y = actionBuffers.ContinuousActions[1];
 
+
+
         //Normalize the values between (-1) - (+1)
-        x = (x - 0.5f) * 2;
-        y = (y - 0.5f) * 2;
-        Motors[0].SetSpeed(x);
-        Motors[1].SetSpeed(y);
+        float nx = (x - 0.5f) * 2;
+        float ny = (y - 0.5f) * 2;
+
+        Debug.LogWarning($"Action received x = {x}, y = {y}, normalized to nx = {nx}, ny = {ny}");
+
+        Motors[0].SetSpeed(nx);
+        Motors[1].SetSpeed(ny);
 
         //Check if we have changed pos (plus or minus a little bit)
         if (Vector3.Distance(lastPosition, transform.position) > 0.1f)
@@ -116,7 +121,7 @@ public class SumoAgent : Agent
 
         //Rewards
         //If the agent has fallen, end the episode
-        if (transform.position.y < -1 || transform.position.y > 0.1)
+        if (transform.position.y < -1) //|| transform.position.y > 0.1)
         {
             Debug.Log("Agent has fallen, resetting environment for team: " + team);
             Environment.Reset(team);
