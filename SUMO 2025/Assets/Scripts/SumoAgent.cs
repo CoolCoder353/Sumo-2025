@@ -100,14 +100,14 @@ public class SumoAgent : Agent
 
 
 
-        //Normalize the values between (-1) - (+1)
-        float nx = (x - 0.5f) * 2;
-        float ny = (y - 0.5f) * 2;
+        // //Normalize the values between (-1) - (+1)
+        // float nx = (x - 0.5f) * 2;
+        // float ny = (y - 0.5f) * 2;
 
-        Debug.LogWarning($"Action received x = {x}, y = {y}, normalized to nx = {nx}, ny = {ny}");
+        Debug.LogWarning($"Action received x = {x}, y = {y}"); //, normalized to nx = {nx}, ny = {ny}");
 
-        Motors[0].SetSpeed(nx);
-        Motors[1].SetSpeed(ny);
+        Motors[0].SetSpeed(x);
+        Motors[1].SetSpeed(y);
 
         //Check if we have changed pos (plus or minus a little bit)
         if (Vector3.Distance(lastPosition, transform.position) > 0.1f)
