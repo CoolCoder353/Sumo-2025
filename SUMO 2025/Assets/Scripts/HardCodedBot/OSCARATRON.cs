@@ -12,6 +12,9 @@ public class OSCARATRON : MonoBehaviour
     private const float MaxSpeed = 0.75f; // Maximum speed
     private const float StopSpeed = 0.5f; // Stop value for motors
 
+    public float idleTime = 10f;
+    private float idleTimer = 0f;
+
     private Vector3 startingPos;
     private float startingDirection;
     public int team;
@@ -43,6 +46,19 @@ public class OSCARATRON : MonoBehaviour
             environment.Reset(team);
 
         }
+
+
+        //Do nothing for the first x seconds
+        idleTimer += Time.deltaTime;
+        if (idleTimer < idleTime)
+        {
+            foreach (var motor in Motors)
+            {
+                motor.SetSpeed(0);
+            }
+            return;
+        }
+
 
         // Main logic for controlling the bot
         if (Enemy == null)

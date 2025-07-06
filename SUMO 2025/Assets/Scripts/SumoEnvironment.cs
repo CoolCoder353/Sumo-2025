@@ -192,18 +192,21 @@ public class SumoEnvironment : MonoBehaviour
 
         if (losingTeam == 0)
         {
+
+
             //// Debug.Log("Removed 200 points to " + losingTeam);
             ////Debug.Log("Added 100 points to " + 1);
+            m_BlueAgentGroup.AddGroupReward(-20000);
 
-            m_BlueAgentGroup.AddGroupReward(1000);
-            m_PurpleAgentGroup.AddGroupReward(-20000);
+            m_PurpleAgentGroup.AddGroupReward(1000);
         }
         else
         {
             //// Debug.Log("Removed 200 points to " + losingTeam);
             //// Debug.Log("Added 100 points to " + 0);
-            m_BlueAgentGroup.AddGroupReward(-20000);
-            m_PurpleAgentGroup.AddGroupReward(1000);
+            m_BlueAgentGroup.AddGroupReward(1000);
+            m_PurpleAgentGroup.AddGroupReward(-20000);
+
         }
         m_BlueAgentGroup.EndGroupEpisode();
         m_PurpleAgentGroup.EndGroupEpisode();
