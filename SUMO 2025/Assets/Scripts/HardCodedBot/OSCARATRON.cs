@@ -81,11 +81,13 @@ public class OSCARATRON : MonoBehaviour
 
 
 
-    private void ResetBot()
+    public void ResetBot()
     {
         // Reset position and rotation
         transform.position = startingPos;
         transform.rotation = Quaternion.Euler(0, startingDirection * Random.Range(0, 180), 0);
+
+        idleTimer = 0f; // Reset idle timer
 
         // Stop all motors
         foreach (var motor in Motors)

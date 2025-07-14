@@ -426,7 +426,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 676224450880382822, guid: bcaa783b729905f48a9ec744f1256327, type: 3}
       propertyPath: chanceForHardCodedRandomAgent
-      value: 90
+      value: 100
       objectReference: {fileID: 0}
     - target: {fileID: 676224450880382822, guid: bcaa783b729905f48a9ec744f1256327, type: 3}
       propertyPath: possibleHardBots.Array.data[0]
